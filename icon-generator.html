@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDGT Fitness - Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0d0d0d;
+            color: #fff;
+        }
+        h1 {
+            color: #FF6B35;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+        canvas {
+            border: 2px solid #FF6B35;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .instructions {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #FF6B35;
+        }
+    </style>
+</head>
+<body>
+    <h1>IDGT Fitness - Icon Generator</h1>
+    
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Generate All Icons" below</li>
+            <li>Right-click each icon and "Save image as..."</li>
+            <li>Save with the exact filename shown (e.g., icon-192.png)</li>
+            <li>Place all icons in the same folder as workout-tracker.html</li>
+        </ol>
+    </div>
+
+    <button onclick="generateAllIcons()" style="font-size: 16px; padding: 15px 30px;">Generate All Icons</button>
+    <button onclick="downloadAllIcons()" style="font-size: 16px; padding: 15px 30px;">Download All Icons</button>
+
+    <div class="icon-grid" id="iconGrid"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const svgContent = `
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#0d0d0d"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F7931E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(256, 256)">
+    <rect x="-200" y="-60" width="50" height="120" rx="8" fill="url(#grad)"/>
+    <rect x="-180" y="-80" width="30" height="160" rx="6" fill="url(#grad)"/>
+    <rect x="-150" y="-15" width="300" height="30" rx="15" fill="url(#grad)"/>
+    <rect x="150" y="-60" width="50" height="120" rx="8" fill="url(#grad)"/>
+    <rect x="150" y="-80" width="30" height="160" rx="6" fill="url(#grad)"/>
+    <circle cx="-50" cy="0" r="5" fill="#0d0d0d"/>
+    <circle cx="0" cy="0" r="5" fill="#0d0d0d"/>
+    <circle cx="50" cy="0" r="5" fill="#0d0d0d"/>
+  </g>
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="url(#grad)">IDGT</text>
+</svg>`;
+
+        function generateIcon(size) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                const img = new Image();
+                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, size, size);
+                    URL.revokeObjectURL(url);
+                    resolve(canvas);
+                };
+
+                img.src = url;
+            });
+        }
+
+        async function generateAllIcons() {
+            const grid = document.getElementById('iconGrid');
+            grid.innerHTML = '';
+
+            for (const size of sizes) {
+                const canvas = await generateIcon(size);
+                
+                const item = document.createElement('div');
+                item.className = 'icon-item';
+                item.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 10px;">icon-${size}.png</div>
+                    <div style="color: #666; font-size: 12px;">${size}x${size}px</div>
+                `;
+                
+                canvas.style.maxWidth = '100%';
+                canvas.style.height = 'auto';
+                item.appendChild(canvas);
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.onclick = () => downloadCanvas(canvas, `icon-${size}.png`);
+                item.appendChild(downloadBtn);
+                
+                grid.appendChild(item);
+            }
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        async function downloadAllIcons() {
+            for (const size of sizes) {
+                const canvas = await generateIcon(size);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between downloads
+                downloadCanvas(canvas, `icon-${size}.png`);
+            }
+        }
+
+        // Auto-generate on load
+        window.addEventListener('load', generateAllIcons);
+    </script>
+</body>
+</html>
